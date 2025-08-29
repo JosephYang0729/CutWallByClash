@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>牆體開口建立工具</Name>
+    <Assembly>CutWallByClash.dll</Assembly>
+    <FullClassName>CutWallByClash.CutWallByClashApp</FullClassName>
+    <ClientId>B6085438-5F4C-4E19-BA15-760897A78235</ClientId>
+    <VendorId>ADSK</VendorId>
+    <VendorDescription>Autodesk Developer</VendorDescription>
+  </AddIn>
+</RevitAddIns>

@@ -1,0 +1,244 @@
+<Window x:Class="CutWallByClash.UI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="牆體開口建立工具" Height="700" Width="600"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResize"
+        Background="#FF2D2D30">
+    
+    <Window.Resources>
+        <!-- 自定義樣式 -->
+        <Style x:Key="ModernGroupBox" TargetType="GroupBox">
+            <Setter Property="Foreground" Value="#FFE6E6E6"/>
+            <Setter Property="Background" Value="#FF3F3F46"/>
+            <Setter Property="BorderBrush" Value="#FF007ACC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="GroupBox">
+                        <Grid>
+                            <Border Background="{TemplateBinding Background}" 
+                                    BorderBrush="{TemplateBinding BorderBrush}" 
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="5">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <Border Grid.Row="0" Background="#FF007ACC" CornerRadius="5,5,0,0" Padding="10,5">
+                                        <ContentPresenter ContentSource="Header" 
+                                                        TextElement.Foreground="White"
+                                                        TextElement.FontWeight="SemiBold"/>
+                                    </Border>
+                                    <ContentPresenter Grid.Row="1" Margin="{TemplateBinding Padding}"/>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ModernCheckBox" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#FFE6E6E6"/>
+            <Setter Property="Margin" Value="0,8"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+
+        <Style x:Key="ModernRadioButton" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="#FFE6E6E6"/>
+            <Setter Property="Margin" Value="0,8"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+
+        <Style x:Key="ModernTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="#FF1E1E1E"/>
+            <Setter Property="Foreground" Value="#FFE6E6E6"/>
+            <Setter Property="BorderBrush" Value="#FF007ACC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,5"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+
+        <Style x:Key="ModernButton" TargetType="Button">
+            <Setter Property="Background" Value="#FF007ACC"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="3"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FF1BA1E2"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#FF005A9E"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" Value="#FF666666"/>
+                                <Setter Property="Foreground" Value="#FF999999"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ModernProgressBar" TargetType="ProgressBar">
+            <Setter Property="Background" Value="#FF1E1E1E"/>
+            <Setter Property="Foreground" Value="#FF007ACC"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Height" Value="8"/>
+        </Style>
+
+        <Style x:Key="ModernTextBlock" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#FFE6E6E6"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+
+        <Style x:Key="LabelTextBlock" TargetType="TextBlock" BasedOn="{StaticResource ModernTextBlock}">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- 第一部分：MEP元件選擇 -->
+        <GroupBox Grid.Row="0" Header="選擇MEP元件類型" Style="{StaticResource ModernGroupBox}">
+            <StackPanel>
+                <CheckBox x:Name="chkPipes" Content="🔧 管道 (Pipes)" IsChecked="True" Style="{StaticResource ModernCheckBox}"/>
+                <CheckBox x:Name="chkDucts" Content="🌬️ 風管 (Ducts)" IsChecked="True" Style="{StaticResource ModernCheckBox}"/>
+                <CheckBox x:Name="chkCableTray" Content="⚡ 電纜架 (Cable Tray)" IsChecked="True" Style="{StaticResource ModernCheckBox}"/>
+                <CheckBox x:Name="chkConduit" Content="🔌 電管 (Conduit)" IsChecked="True" Style="{StaticResource ModernCheckBox}"/>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- 第二部分：開口類型選擇 -->
+        <GroupBox Grid.Row="1" Header="開口類型設定" Style="{StaticResource ModernGroupBox}">
+            <StackPanel>
+                <RadioButton x:Name="rbRectangular" Content="📐 矩形開口" IsChecked="True" 
+                           Checked="OnOpeningTypeChanged" Style="{StaticResource ModernRadioButton}"/>
+                <RadioButton x:Name="rbCircular" Content="⭕ 圓形開口" 
+                           Checked="OnOpeningTypeChanged" Style="{StaticResource ModernRadioButton}"/>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- 第三部分：參數設定 -->
+        <GroupBox Grid.Row="2" Header="開口參數" Style="{StaticResource ModernGroupBox}">
+            <StackPanel>
+                <!-- 矩形參數 -->
+                <StackPanel x:Name="pnlRectangular">
+                    <Grid Margin="0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="40"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="寬度:" Style="{StaticResource LabelTextBlock}"/>
+                        <TextBox x:Name="txtRectWidth" Grid.Column="1" Text="200" Margin="10,0" Style="{StaticResource ModernTextBox}"/>
+                        <TextBlock Grid.Column="2" Text="mm" Style="{StaticResource LabelTextBlock}" HorizontalAlignment="Center"/>
+                    </Grid>
+                    <Grid Margin="0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="40"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="高度:" Style="{StaticResource LabelTextBlock}"/>
+                        <TextBox x:Name="txtRectHeight" Grid.Column="1" Text="200" Margin="10,0" Style="{StaticResource ModernTextBox}"/>
+                        <TextBlock Grid.Column="2" Text="mm" Style="{StaticResource LabelTextBlock}" HorizontalAlignment="Center"/>
+                    </Grid>
+                </StackPanel>
+
+                <!-- 圓形參數 -->
+                <StackPanel x:Name="pnlCircular" Visibility="Hidden">
+                    <Grid Margin="0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="40"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="直徑:" Style="{StaticResource LabelTextBlock}"/>
+                        <TextBox x:Name="txtCircularDiameter" Grid.Column="1" Text="200" Margin="10,0" Style="{StaticResource ModernTextBox}"/>
+                        <TextBlock Grid.Column="2" Text="mm" Style="{StaticResource LabelTextBlock}" HorizontalAlignment="Center"/>
+                    </Grid>
+                </StackPanel>
+
+                <!-- 共用參數 -->
+                <Separator Margin="0,15" Background="#FF666666"/>
+                <Grid Margin="0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="40"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="牆厚餘量:" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBox x:Name="txtWallThickness" Grid.Column="1" Text="50" Margin="10,0" Style="{StaticResource ModernTextBox}"/>
+                    <TextBlock Grid.Column="2" Text="mm" Style="{StaticResource LabelTextBlock}" HorizontalAlignment="Center"/>
+                </Grid>
+                <Grid Margin="0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="40"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="合併距離:" Style="{StaticResource LabelTextBlock}"/>
+                    <TextBox x:Name="txtMergeDistance" Grid.Column="1" Text="100" Margin="10,0" Style="{StaticResource ModernTextBox}"/>
+                    <TextBlock Grid.Column="2" Text="mm" Style="{StaticResource LabelTextBlock}" HorizontalAlignment="Center"/>
+                </Grid>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- 第四部分：執行按鈕和進度 -->
+        <GroupBox Grid.Row="3" Header="執行操作" Style="{StaticResource ModernGroupBox}">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="btnDetectClashes" Grid.Column="0" Content="🔍 偵測碰撞" Height="40"
+                            Click="OnDetectClashes" Style="{StaticResource ModernButton}"/>
+                    <Button x:Name="btnCreateOpenings" Grid.Column="2" Content="🔨 建立開口" Height="40"
+                            Click="OnCreateOpenings" IsEnabled="False" Style="{StaticResource ModernButton}"/>
+                </Grid>
+                
+                <ProgressBar x:Name="progressBar" Margin="0,15,0,10" Style="{StaticResource ModernProgressBar}" 
+                           Minimum="0" Maximum="100"/>
+                <TextBlock x:Name="txtStatus" Text="準備就緒" HorizontalAlignment="Center" 
+                          Style="{StaticResource ModernTextBlock}" FontStyle="Italic"/>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- 第五部分：結果顯示 -->
+        <GroupBox Grid.Row="4" Header="偵測結果" Style="{StaticResource ModernGroupBox}">
+            <ScrollViewer Background="#FF1E1E1E" Padding="10">
+                <TextBlock x:Name="txtResults" TextWrapping="Wrap"
+                          FontFamily="Consolas" FontSize="11" 
+                          Foreground="#FFE6E6E6" LineHeight="16"/>
+            </ScrollViewer>
+        </GroupBox>
+    </Grid>
+</Window>
