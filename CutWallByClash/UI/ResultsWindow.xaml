@@ -4,7 +4,8 @@
         Title="開口建立結果" Height="600" Width="800"
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResize"
-        Background="#FFF0F0F0">
+        Background="#FFF0F0F0"
+        Icon="pack://application:,,,/CutWallByClash;component/Resources/favicon.ico">
 
     <Window.Resources>
         <Style x:Key="ModernGroupBox" TargetType="GroupBox">
@@ -283,9 +284,9 @@
                     <!-- 操作按鈕 -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
                         <Button x:Name="btnSaveChanges" Content="儲存修改" Style="{StaticResource ModernButton}" 
-                                Click="OnSaveChanges" Width="80" Margin="5"/>
+                                Click="OnSaveChanges" Width="120" Margin="5"/>
                         <Button x:Name="btnCancelEdit" Content="取消" Style="{StaticResource ModernButton}" 
-                                Click="OnCancelEdit" Width="60" Margin="5" Background="#FF666666"/>
+                                Click="OnCancelEdit" Width="80" Margin="5" Background="#FF666666"/>
                     </StackPanel>
                 </StackPanel>
 
@@ -295,14 +296,14 @@
                         <!-- 矩形開口圖片 -->
                         <Image x:Name="imgEditRectangular" 
                            Stretch="Uniform"
-                           Source="pack://application:,,,/CutWallByClash;component/Resources/矩形距離.png"
+                           Source="pack://application:,,,/CutWallByClash;component/Resources/矩形開口尺寸.png"
                            Visibility="Visible"
                            Margin="5"/>
 
                         <!-- 圓形開口圖片 -->
                         <Image x:Name="imgEditCircular" 
                            Stretch="Uniform"
-                           Source="pack://application:,,,/CutWallByClash;component/Resources/圓形距離.png"
+                           Source="pack://application:,,,/CutWallByClash;component/Resources/圓形開口尺寸.png"
                            Visibility="Collapsed"
                            Margin="5"/>
                     </Grid>

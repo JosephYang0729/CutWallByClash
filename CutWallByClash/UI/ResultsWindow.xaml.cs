@@ -21,6 +21,8 @@ namespace CutWallByClash.UI
         private ClashResultItem _currentEditingItem;
         private readonly OpeningEditExternalEvent _editExternalEvent;
         private readonly ExternalEvent _editRevitEvent;
+        private readonly CustomNavigationAndSelectionEvent _customNavigationEvent;
+        private readonly ExternalEvent _customNavigationRevitEvent;
 
         public ResultsWindow(ObservableCollection<ClashResultItem> results, string summary, TimeSpan executionTime, Document document = null)
         {
@@ -33,6 +35,10 @@ namespace CutWallByClash.UI
             // 初始化ExternalEvent
             _editExternalEvent = new OpeningEditExternalEvent();
             _editRevitEvent = ExternalEvent.Create(_editExternalEvent);
+            
+            // 初始化自定義導航ExternalEvent
+            _customNavigationEvent = new CustomNavigationAndSelectionEvent();
+            _customNavigationRevitEvent = ExternalEvent.Create(_customNavigationEvent);
             
             // 設定數據源
             dgResults.ItemsSource = _results;
@@ -76,22 +82,8 @@ namespace CutWallByClash.UI
                         // 設置選中項
                         dgResults.SelectedItem = selectedItem;
                         
-                        // 先進行3D導航
-                        _navigationHandler.NavigateToClash(
-                            selectedItem.OriginalClash,
-                            onCompleted: (message) =>
-                            {
-                                // 導航完成後選取元件
-                                SelectWallAndOpening(selectedItem);
-                            },
-                            onError: (error) =>
-                            {
-                                Dispatcher.Invoke(() =>
-                                {
-                                    MessageBox.Show(error, "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
-                                });
-                            }
-                        );
+                        // 直接執行我們的導航和選取邏輯，不使用原本的 NavigateToClash
+                        NavigateAndSelectWallAndOpening(selectedItem);
                     }
                     catch (Exception ex)
                     {
@@ -126,6 +118,70 @@ namespace CutWallByClash.UI
             return null;
         }
 
+        private void NavigateAndSelectWallAndOpening(ClashResultItem selectedItem)
+        {
+            try
+            {
+                if (_document == null) return;
+                
+                var elementsToSelect = new List<ElementId>();
+                
+                // 只添加牆體（確保是當前文檔中的牆體，不是連結模型）
+                if (selectedItem.OriginalClash?.Wall != null)
+                {
+                    var wall = selectedItem.OriginalClash.Wall;
+                    // 確認牆體屬於當前文檔
+                    if (wall.Document.Equals(_document))
+                    {
+                        elementsToSelect.Add(wall.Id);
+                    }
+                }
+
+                // 只添加開口元件（如果有開口ID）
+                if (!string.IsNullOrEmpty(selectedItem.OpeningId) && selectedItem.OpeningId != "未建立")
+                {
+                    if (TryParseElementId(selectedItem.OpeningId, out ElementId openingId))
+                    {
+                        var openingElement = _document.GetElement(openingId);
+                        // 確認開口元件存在且屬於當前文檔
+                        if (openingElement != null && openingElement.Document.Equals(_document))
+                        {
+                            elementsToSelect.Add(openingId);
+                        }
+                    }
+                }
+
+                // 設置導航和選取數據
+                _customNavigationEvent.SetData(
+                    selectedItem.OriginalClash,
+                    elementsToSelect,
+                    (message) =>
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            // 可以在這裡添加成功提示，或者保持靜默
+                        });
+                    },
+                    (error) =>
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            MessageBox.Show(error, "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
+                        });
+                    }
+                );
+
+                _customNavigationRevitEvent.Raise();
+            }
+            catch (Exception ex)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    MessageBox.Show($"導航和選取元件時發生錯誤：{ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
+                });
+            }
+        }
+
         private void SelectWallAndOpening(ClashResultItem selectedItem)
         {
             try
@@ -138,29 +194,41 @@ namespace CutWallByClash.UI
                 
                 var elementsToSelect = new List<ElementId>();
                 
-                // 添加牆體
+                // 只添加牆體（確保是當前文檔中的牆體，不是連結模型）
                 if (selectedItem.OriginalClash?.Wall != null)
                 {
-                    elementsToSelect.Add(selectedItem.OriginalClash.Wall.Id);
+                    var wall = selectedItem.OriginalClash.Wall;
+                    // 確認牆體屬於當前文檔
+                    if (wall.Document.Equals(_document))
+                    {
+                        elementsToSelect.Add(wall.Id);
+                    }
                 }
 
-                // 添加開口元件（如果有開口ID）
+                // 只添加開口元件（如果有開口ID）
                 if (!string.IsNullOrEmpty(selectedItem.OpeningId) && selectedItem.OpeningId != "未建立")
                 {
                     if (TryParseElementId(selectedItem.OpeningId, out ElementId openingId))
                     {
                         var openingElement = _document.GetElement(openingId);
-                        if (openingElement != null)
+                        // 確認開口元件存在且屬於當前文檔
+                        if (openingElement != null && openingElement.Document.Equals(_document))
                         {
                             elementsToSelect.Add(openingId);
                         }
                     }
                 }
 
-                // 執行選取
+                // 執行選取（明確清除之前的選取，只選取指定元件）
                 if (elementsToSelect.Any())
                 {
                     selectionEvent.SetElementIds(elementsToSelect);
+                    revitEvent.Raise();
+                }
+                else
+                {
+                    // 如果沒有要選取的元件，清空選取
+                    selectionEvent.SetElementIds(new List<ElementId>());
                     revitEvent.Raise();
                 }
             }
@@ -588,6 +656,124 @@ namespace CutWallByClash.UI
         public string GetName()
         {
             return "Selection External Event";
+        }
+    }
+
+    public class CustomNavigationAndSelectionEvent : IExternalEventHandler
+    {
+        private ClashInfo _clashInfo;
+        private List<ElementId> _elementsToSelect;
+        private Action<string> _onCompleted;
+        private Action<string> _onError;
+
+        public void SetData(ClashInfo clashInfo, List<ElementId> elementsToSelect, Action<string> onCompleted, Action<string> onError)
+        {
+            _clashInfo = clashInfo;
+            _elementsToSelect = elementsToSelect;
+            _onCompleted = onCompleted;
+            _onError = onError;
+        }
+
+        public void Execute(UIApplication app)
+        {
+            try
+            {
+                var uiDoc = app.ActiveUIDocument;
+                var document = uiDoc.Document;
+
+                // 確保在3D視圖中
+                var view3D = Get3DView(document);
+                if (view3D == null)
+                {
+                    _onError?.Invoke("找不到3D視圖，請確保專案中有3D視圖。");
+                    return;
+                }
+
+                // 切換到3D視圖
+                uiDoc.ActiveView = view3D;
+
+                // 設置3D剖面框
+                using (var transaction = new Transaction(document, "Navigate to Clash"))
+                {
+                    transaction.Start();
+
+                    try
+                    {
+                        // 計算剖面框範圍（以碰撞點為中心，擴展5米）
+                        var clashPoint = _clashInfo.ClashPoint;
+                        var boxSize = 5.0 / 0.3048; // 5米轉換為英尺
+
+                        var min = new XYZ(
+                            clashPoint.X - boxSize,
+                            clashPoint.Y - boxSize,
+                            clashPoint.Z - boxSize
+                        );
+
+                        var max = new XYZ(
+                            clashPoint.X + boxSize,
+                            clashPoint.Y + boxSize,
+                            clashPoint.Z + boxSize
+                        );
+
+                        var boundingBox = new BoundingBoxXYZ
+                        {
+                            Min = min,
+                            Max = max
+                        };
+
+                        // 設置剖面框
+                        view3D.SetSectionBox(boundingBox);
+
+                        transaction.Commit();
+
+                        // 刷新視圖
+                        uiDoc.RefreshActiveView();
+
+                        // 只選取指定的元件（牆壁和開口）
+                        if (_elementsToSelect != null && _elementsToSelect.Any())
+                        {
+                            uiDoc.Selection.SetElementIds(_elementsToSelect);
+                        }
+                        else
+                        {
+                            // 清空選取
+                            uiDoc.Selection.SetElementIds(new List<ElementId>());
+                        }
+
+                        // 縮放到適合
+                        uiDoc.GetOpenUIViews().FirstOrDefault()?.ZoomToFit();
+
+                        _onCompleted?.Invoke("成功定位到碰撞點並選取牆壁和開口元件");
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.RollBack();
+                        _onError?.Invoke($"設置3D剖面框失敗: {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _onError?.Invoke($"導航到碰撞點時發生錯誤：{ex.Message}");
+            }
+        }
+
+        private View3D Get3DView(Document document)
+        {
+            var collector = new FilteredElementCollector(document)
+                .OfClass(typeof(View3D))
+                .Cast<View3D>()
+                .Where(v => !v.IsTemplate);
+
+            // 優先選擇名稱包含"3D"的視圖
+            var view3D = collector.FirstOrDefault(v => v.Name.Contains("3D")) ?? collector.FirstOrDefault();
+
+            return view3D;
+        }
+
+        public string GetName()
+        {
+            return "Custom Navigation and Selection Event";
         }
     }
 }

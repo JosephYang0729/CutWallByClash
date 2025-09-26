@@ -108,5 +108,17 @@
   <ItemGroup>
     <None Include="Resources\圓形距離.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\矩形開口尺寸.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\圓形開口尺寸.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\CutWallByClash.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\favicon.ico" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

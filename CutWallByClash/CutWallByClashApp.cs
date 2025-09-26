@@ -1,42 +1,32 @@
 using Autodesk.Revit.UI;
 using System;
+using System.Linq;
 using System.Reflection;
+using System.Windows;
 using System.Windows.Media.Imaging;
 
 namespace CutWallByClash
 {
     public class CutWallByClashApp : IExternalApplication
     {
+        static string addinAssmeblyPath = Assembly.GetExecutingAssembly().Location;
         public Result OnStartup(UIControlledApplication application)
         {
             try
             {
-                // 創建Ribbon面板
-                var ribbonPanel = application.CreateRibbonPanel("牆體開口工具");
-
-                // 創建按鈕
-                var assemblyPath = Assembly.GetExecutingAssembly().Location;
-                var buttonData = new PushButtonData(
-                    "CutWallByClash",
-                    "牆體開口\n建立工具",
-                    assemblyPath,
-                    "CutWallByClash.CutWallByClashCommand");
-
-                buttonData.ToolTip = "根據MEP元件與牆的碰撞自動建立開口";
-                buttonData.LongDescription = "此工具可以偵測專案中所有牆與MEP元件（管道、風管、電纜架、電管）的碰撞，並自動建立相應的開口。支援矩形和圓形開口，並可合併相近的碰撞點。";
-
-                // 設定圖示（可選）
-                try
+                try { application.CreateRibbonTab("中興航空城"); } catch { }
+                RibbonPanel ribbonPanel = application.GetRibbonPanels("中興航空城").FirstOrDefault(p => p.Name == "小工具");
+                if (ribbonPanel == null)
                 {
-                    var iconUri = new Uri("pack://application:,,,/CutWallByClash;component/Resources/icon32.png");
-                    buttonData.LargeImage = new BitmapImage(iconUri);
-                }
-                catch
-                {
-                    // 如果沒有圖示檔案，忽略錯誤
+                    ribbonPanel = application.CreateRibbonPanel("中興航空城", "小工具");
                 }
 
-                var pushButton = ribbonPanel.AddItem(buttonData) as PushButton;
+                PushButton pushbutton1 = ribbonPanel.AddItem(
+                new PushButtonData("CutWallByClash", "牆面自動開口",
+                    addinAssmeblyPath, "CutWallByClash.CutWallByClashCommand"))
+                        as PushButton;
+                pushbutton1.ToolTip = "根據MEP元件與牆的碰撞位置與尺寸，自動建立相對應大小及形狀的開口元件";
+                pushbutton1.LargeImage = new BitmapImage(new Uri("pack://application:,,,/CutWallByClash;component/Resources/CutWallByClash.png"));
 
                 return Result.Succeeded;
             }
