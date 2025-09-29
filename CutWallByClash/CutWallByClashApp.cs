@@ -14,11 +14,11 @@ namespace CutWallByClash
         {
             try
             {
-                try { application.CreateRibbonTab("中興航空城"); } catch { }
-                RibbonPanel ribbonPanel = application.GetRibbonPanels("中興航空城").FirstOrDefault(p => p.Name == "小工具");
+                try { application.CreateRibbonTab("TrendyTech"); } catch { }
+                RibbonPanel ribbonPanel = application.GetRibbonPanels("TrendyTech").FirstOrDefault(p => p.Name == "小工具");
                 if (ribbonPanel == null)
                 {
-                    ribbonPanel = application.CreateRibbonPanel("中興航空城", "小工具");
+                    ribbonPanel = application.CreateRibbonPanel("TrendyTech", "小工具");
                 }
 
                 PushButton pushbutton1 = ribbonPanel.AddItem(

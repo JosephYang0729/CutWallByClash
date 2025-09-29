@@ -5,7 +5,7 @@
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResize"
         Background="#FFF0F0F0"
-        Icon="pack://application:,,,/CutWallByClash;component/Resources/favicon.ico">
+        Icon="pack://application:,,,/CutWallByClash;component/Resources/logo.ico">
 
     <Window.Resources>
         <Style x:Key="ModernGroupBox" TargetType="GroupBox">
